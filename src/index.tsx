@@ -1,40 +1,13 @@
-import Big from 'big.js'
-import React, { useCallback, useMemo, useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { ConfigInterface, defaultConfig, formatCurrency } from './utils'
 
-export function formatCurrency(
-  value: number,
-  localeConfig: any,
-  currencyName: string
-) {
-  const numberConfig = localeConfig.formats.number[currencyName]
-  const formatter = new global.Intl.NumberFormat(
-    localeConfig.locale,
-    numberConfig
-  )
-
-  return formatter.format(Number(Big(value)))
-}
-
-const defaultConfig = {
-  locale: 'en-US',
-  formats: {
-    number: {
-      USD: {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }
-    }
-  }
-}
 interface ReactCurrencyInputInterface {
   component?: any
   currency?: string
   value: number
   defaultValue?: number
   max?: number
-  config?: any
+  config?: ConfigInterface
   autoFocus?: boolean
   autoSelect?: boolean
   autoReset?: boolean
@@ -58,6 +31,22 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
   onFocus,
   onKeyPress
 }) => {
+  useEffect(() => {
+    const currencyList = {
+      ...config.formats.number,
+      ...defaultConfig.formats.number
+    }
+
+    config = {
+      ...defaultConfig,
+      ...config,
+      formats: {
+        number: currencyList
+      },
+      locale: navigator.language
+    }
+  }, [navigator.language])
+
   const inputRef = useCallback(
     (node) => {
       const isActive = node === document.activeElement
@@ -69,11 +58,9 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
     [autoFocus]
   )
 
-  const [maskedValue, setMaskedValue] = useState('0')
-
-  // to prevent a malformed config object
   const safeConfig = useMemo(
     () => () => {
+      if (!config.formats.number[currency]) throw Error('Missing currency')
       const {
         formats: {
           number: {
@@ -97,6 +84,8 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
     },
     [defaultConfig, config]
   )
+
+  const [maskedValue, setMaskedValue] = useState('0')
 
   const clean = (number: any) => {
     if (typeof number === 'number') {
@@ -199,6 +188,7 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
 
   return (
     <input
+      className='react-currency-input'
       ref={inputRef}
       value={maskedValue}
       onChange={handleChange}
