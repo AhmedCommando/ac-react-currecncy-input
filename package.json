@@ -1,10 +1,10 @@
 {
-  "name": "react-currency-input",
-  "version": "1.0.0",
+  "name": "ac-react-currency-input",
+  "version": "1.0.1",
   "description": "react currency input ",
   "author": "AhmedCommando",
   "license": "MIT",
-  "repository": "AhmedCommando/react-currency-input",
+  "repository": "AhmedCommando/ac-react-currency-input",
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
   "source": "src/index.tsx",

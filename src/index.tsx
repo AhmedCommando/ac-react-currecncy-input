@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ConfigInterface, defaultConfig, formatCurrency } from './utils'
 
-interface ReactCurrencyInputInterface {
+interface CurrencyInputInterface {
   component?: any
   currency?: string
   value: number
@@ -17,7 +17,7 @@ interface ReactCurrencyInputInterface {
   onKeyPress?: (event: any, key: any, code: any) => void
 }
 
-const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
+const CurrencyInput: React.FC<CurrencyInputInterface> = ({
   currency = 'USD',
   value,
   defaultValue = 0,
@@ -31,6 +31,9 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
   onFocus,
   onKeyPress
 }) => {
+  const [maskedValue, setMaskedValue] = useState('0')
+  const [cursor, setCursor] = useState(0)
+
   useEffect(() => {
     const currencyList = {
       ...config.formats.number,
@@ -50,12 +53,15 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
   const inputRef = useCallback(
     (node) => {
       const isActive = node === document.activeElement
+      if (node) {
+        if (autoFocus && !isActive) {
+          node.focus()
+        }
 
-      if (node && autoFocus && !isActive) {
-        node.focus()
+        cursor > 0 && node.setSelectionRange(cursor, cursor)
       }
     },
-    [autoFocus]
+    [autoFocus, value]
   )
 
   const safeConfig = useMemo(
@@ -84,8 +90,6 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
     },
     [defaultConfig, config]
   )
-
-  const [maskedValue, setMaskedValue] = useState('0')
 
   const clean = (number: any) => {
     if (typeof number === 'number') {
@@ -142,17 +146,19 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
     }
   }
 
-  const handleChange = (event: any) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault()
-
+    const cursor = event.target.selectionStart
     const [value, maskedValue] = updateValues(event.target.value)
+
+    event.target.value.length <= 5 ? setCursor(-1) : cursor && setCursor(cursor)
 
     if (maskedValue) {
       onChange && onChange(event, value, maskedValue)
     }
   }
 
-  const handleBlur = (event: any) => {
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const [value, maskedValue] = updateValues(event.target.value)
 
     if (autoReset) {
@@ -164,7 +170,7 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
     }
   }
 
-  const handleFocus = (event: any) => {
+  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     if (autoSelect) {
       event.target.select()
     }
@@ -176,7 +182,7 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
     }
   }
 
-  const handleKeyUp = (event: any) =>
+  const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) =>
     onKeyPress && onKeyPress(event, event.key, event.keyCode)
 
   useEffect(() => {
@@ -199,4 +205,4 @@ const ReactCurrencyInput: React.FC<ReactCurrencyInputInterface> = ({
   )
 }
 
-export default ReactCurrencyInput
+export default CurrencyInput
